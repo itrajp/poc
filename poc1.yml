@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: '2010-09-09' 
+Description : Creates a VPC, s3, and ec2
+Parameters:
+  VPCSubnetCidrBlock:
+    Type: String
+    Default: 172.31.0.0/16
+  
+
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 172.31.0.0/16  
+      Tags:
+        - Key: Name
+          Value: cust-vpc
+
+  PublicSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    DependsOn: VPC
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 172.31.1.0/24
+      MapPublicIpOnLaunch: true 
+      Tags:
+      - Key: Name
+        Value: cust-pub-sub-1
+
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+      - Key: Name
+        Value: cust-ig
+
+  GatewayToInternet:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    DependsOn:
+    - InternetGateway
+    - VPC
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    DependsOn: VPC
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: cust-pub-rt 
+
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn:
+    - PublicRouteTable
+    - InternetGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetAssociation1:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    DependsOn:
+    - PublicSubnet1
+    - PublicRouteTable
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+      
+  PrivateSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    DependsOn: VPC
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 172.31.3.0/24
+      MapPublicIpOnLaunch: false 
+      Tags:
+      - Key: Name
+        Value: cust-pri-sub-1
+
+  PrivateRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    DependsOn: VPC
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: cust-pri-rtable
+  
+ 
+  PrivateSubnetAssociation1:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    DependsOn:
+    - PrivateSubnet1
+    - PrivateRouteTable
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+
+  EC2:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: 't2.micro'
+      ImageId: 'ami-01aab85a5e4a5a0fe'
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+       - Key: Name
+         Value: cust-ec2
+  S3: 
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: 'cust-stack-buck'
+      Tags:
+        - Key: Name
+          Value: cust-stack-buck
+
