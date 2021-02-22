@@ -99,7 +99,7 @@ Resources:
     Type: 'AWS::EC2::Instance'
     Properties:
       InstanceType: 't2.micro'
-      ImageId: 'ami-01aab85a5e4a5a0fe'
+      ImageId: 'ami-0e2e44c03b85f58b3'
       SubnetId: !Ref PublicSubnet1
       Tags:
        - Key: Name
