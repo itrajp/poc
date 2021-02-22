@@ -1,10 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09' 
 Description : Creates a VPC, s3, and ec2
-Parameters:
-  VPCSubnetCidrBlock:
-    Type: String
-    Default: 172.31.0.0/16
-  
 
 Resources:
   VPC:
